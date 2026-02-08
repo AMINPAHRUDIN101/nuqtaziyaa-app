@@ -101,6 +101,26 @@ button.primary{
   font-weight:bold;
 }
 
+button.danger{
+  padding:4px 8px;
+  border:none;
+  border-radius:4px;
+  background:red;
+  color:#fff;
+  margin-left:8px;
+  font-size:12px;
+}
+
+button.edit{
+  padding:4px 8px;
+  border:none;
+  border-radius:4px;
+  background:orange;
+  color:#fff;
+  margin-left:8px;
+  font-size:12px;
+}
+
 .list-item{
   border-bottom:1px solid rgba(255,255,255,.2);
   padding:8px 0;
@@ -136,7 +156,7 @@ button.primary{
 
 <section id="klien">
   <div class="card">
-    <h3>Tambah Klien</h3>
+    <h3>Tambah / Edit Klien</h3>
     <input id="kNama" placeholder="Nama Klien">
     <input id="kKontak" placeholder="Kontak (WA / IG)">
     <select id="kTipe">
@@ -145,7 +165,8 @@ button.primary{
       <option>Produk</option>
       <option>Personal</option>
     </select>
-    <button class="primary" onclick="tambahKlien()">Simpan</button>
+    <input type="hidden" id="kId">
+    <button class="primary" onclick="simpanKlien()">Simpan</button>
   </div>
 
   <div class="card">
@@ -156,7 +177,7 @@ button.primary{
 
 <section id="job">
   <div class="card">
-    <h3>Tambah Job</h3>
+    <h3>Tambah / Edit Job</h3>
     <input id="jNama" placeholder="Nama Project">
     <input id="jTanggal" type="date">
     <select id="jKlien"></select>
@@ -166,7 +187,8 @@ button.primary{
       <option>Editing</option>
       <option>Selesai</option>
     </select>
-    <button class="primary" onclick="tambahJob()">Simpan</button>
+    <input type="hidden" id="jId">
+    <button class="primary" onclick="simpanJob()">Simpan</button>
   </div>
 
   <div class="card">
@@ -181,7 +203,8 @@ button.primary{
     <h3>Tambah Pemasukan</h3>
     <input id="uJumlah" type="number" placeholder="Jumlah">
     <textarea id="uCatatan" placeholder="Catatan"></textarea>
-    <button class="primary" onclick="tambahUang()">Simpan</button>
+    <input type="hidden" id="uId">
+    <button class="primary" onclick="simpanUang()">Simpan</button>
   </div>
 
   <div class="card">
@@ -199,116 +222,191 @@ function showTab(id,el){
   el.classList.add('active');
 }
 
-/* ================= FIRESTORE OPERATIONS ================= */
-// Tambah Klien
-function tambahKlien(){
+/* ================= KLIEN ================= */
+function simpanKlien(){
   const nama = document.getElementById('kNama').value;
   const kontak = document.getElementById('kKontak').value;
   const tipe = document.getElementById('kTipe').value;
+  const id = document.getElementById('kId').value;
 
-  db.collection("klien").add({ nama, kontak, tipe })
-    .then(() => {
-      document.getElementById('kNama').value = '';
-      document.getElementById('kKontak').value = '';
+  if(id){
+    db.collection("klien").doc(id).update({nama, kontak, tipe}).then(()=>{
+      resetKlienForm();
       renderKlien();
     });
+  } else {
+    db.collection("klien").add({nama, kontak, tipe}).then(()=>{
+      resetKlienForm();
+      renderKlien();
+    });
+  }
 }
 
-// Render Klien
+function editKlien(id, data){
+  document.getElementById('kNama').value = data.nama;
+  document.getElementById('kKontak').value = data.kontak;
+  document.getElementById('kTipe').value = data.tipe;
+  document.getElementById('kId').value = id;
+}
+
+function hapusKlien(id){
+  if(confirm('Hapus klien ini?')){
+    db.collection("klien").doc(id).delete().then(renderKlien);
+  }
+}
+
+function resetKlienForm(){
+  document.getElementById('kNama').value='';
+  document.getElementById('kKontak').value='';
+  document.getElementById('kTipe').value='Wedding';
+  document.getElementById('kId').value='';
+}
+
 function renderKlien(){
-  db.collection("klien").get().then(snapshot => {
+  db.collection("klien").get().then(snapshot=>{
     const list = document.getElementById('listKlien');
-    list.innerHTML = '';
-    snapshot.forEach(doc => {
+    const jKlien = document.getElementById('jKlien');
+    list.innerHTML='';
+    jKlien.innerHTML='';
+    snapshot.forEach(doc=>{
       const k = doc.data();
+      const id = doc.id;
       list.innerHTML += `
         <div class="list-item">
-          ${k.nama}
+          ${k.nama} 
           <div class="small">${k.tipe}</div>
+          <button class="edit" onclick='editKlien("${id}", ${JSON.stringify(k)})'>Edit</button>
+          <button class="danger" onclick='hapusKlien("${id}")'>Hapus</button>
         </div>
       `;
-    });
-
-    // Update select job
-    const jKlien = document.getElementById('jKlien');
-    jKlien.innerHTML = '';
-    snapshot.forEach(doc => {
-      const k = doc.data();
       jKlien.innerHTML += `<option>${k.nama}</option>`;
     });
-
     document.getElementById('totalKlien').innerText = snapshot.size;
   });
 }
 
-// Tambah Job
-function tambahJob(){
+/* ================= JOB ================= */
+function simpanJob(){
   const nama = document.getElementById('jNama').value;
   const tanggal = document.getElementById('jTanggal').value;
   const klien = document.getElementById('jKlien').value;
   const harga = Number(document.getElementById('jHarga').value);
   const status = document.getElementById('jStatus').value;
+  const id = document.getElementById('jId').value;
 
-  db.collection("job").add({ nama, tanggal, klien, harga, status })
-    .then(() => {
-      document.getElementById('jNama').value = '';
-      document.getElementById('jHarga').value = '';
+  if(id){
+    db.collection("job").doc(id).update({nama, tanggal, klien, harga, status}).then(()=>{
+      resetJobForm();
       renderJobs();
     });
+  } else {
+    db.collection("job").add({nama, tanggal, klien, harga, status}).then(()=>{
+      resetJobForm();
+      renderJobs();
+    });
+  }
 }
 
-// Render Job
+function editJob(id, data){
+  document.getElementById('jNama').value=data.nama;
+  document.getElementById('jTanggal').value=data.tanggal;
+  document.getElementById('jKlien').value=data.klien;
+  document.getElementById('jHarga').value=data.harga;
+  document.getElementById('jStatus').value=data.status;
+  document.getElementById('jId').value=id;
+}
+
+function hapusJob(id){
+  if(confirm('Hapus job ini?')){
+    db.collection("job").doc(id).delete().then(renderJobs);
+  }
+}
+
+function resetJobForm(){
+  document.getElementById('jNama').value='';
+  document.getElementById('jTanggal').value='';
+  document.getElementById('jKlien').value='';
+  document.getElementById('jHarga').value='';
+  document.getElementById('jStatus').value='On Progress';
+  document.getElementById('jId').value='';
+}
+
 function renderJobs(){
   const tglFilter = document.getElementById('filterTanggal').value;
-  db.collection("job").get().then(snapshot => {
-    const listJob = document.getElementById('listJob');
-    listJob.innerHTML = '';
+  db.collection("job").get().then(snapshot=>{
+    const list = document.getElementById('listJob');
+    list.innerHTML='';
     let totalJob = 0;
     let totalUang = 0;
-
-    snapshot.forEach(doc => {
+    snapshot.forEach(doc=>{
       const j = doc.data();
       if(!tglFilter || j.tanggal === tglFilter){
-        listJob.innerHTML += `
+        list.innerHTML += `
           <div class="list-item">
             ${j.nama} 
             <div class="small">${j.tanggal} • ${j.status}</div>
+            <button class="edit" onclick='editJob("${doc.id}", ${JSON.stringify(j)})'>Edit</button>
+            <button class="danger" onclick='hapusJob("${doc.id}")'>Hapus</button>
           </div>
         `;
         totalJob++;
         totalUang += j.harga;
       }
     });
-
-    document.getElementById('totalJob').innerText = totalJob;
-    document.getElementById('totalUang').innerText = 'Rp ' + totalUang.toLocaleString('id-ID');
+    document.getElementById('totalJob').innerText=totalJob;
+    document.getElementById('totalUang').innerText='Rp '+totalUang.toLocaleString('id-ID');
   });
 }
 
-// Tambah Uang
-function tambahUang(){
-  const jumlah = Number(document.getElementById('uJumlah').value);
-  const catatan = document.getElementById('uCatatan').value;
+/* ================= UANG ================= */
+function simpanUang(){
+  const jumlah=Number(document.getElementById('uJumlah').value);
+  const catatan=document.getElementById('uCatatan').value;
+  const id=document.getElementById('uId').value;
 
-  db.collection("uang").add({ jumlah, catatan })
-    .then(() => {
-      document.getElementById('uJumlah').value = '';
-      document.getElementById('uCatatan').value = '';
+  if(id){
+    db.collection("uang").doc(id).update({jumlah,catatan}).then(()=>{
+      resetUangForm();
       renderUang();
     });
+  } else {
+    db.collection("uang").add({jumlah,catatan}).then(()=>{
+      resetUangForm();
+      renderUang();
+    });
+  }
 }
 
-// Render Uang
+function editUang(id, data){
+  document.getElementById('uJumlah').value=data.jumlah;
+  document.getElementById('uCatatan').value=data.catatan;
+  document.getElementById('uId').value=id;
+}
+
+function hapusUang(id){
+  if(confirm('Hapus pemasukan ini?')){
+    db.collection("uang").doc(id).delete().then(renderUang);
+  }
+}
+
+function resetUangForm(){
+  document.getElementById('uJumlah').value='';
+  document.getElementById('uCatatan').value='';
+  document.getElementById('uId').value='';
+}
+
 function renderUang(){
-  db.collection("uang").get().then(snapshot => {
-    const listUang = document.getElementById('listUang');
-    listUang.innerHTML = '';
-    snapshot.forEach(doc => {
-      const u = doc.data();
-      listUang.innerHTML += `
+  db.collection("uang").get().then(snapshot=>{
+    const list=document.getElementById('listUang');
+    list.innerHTML='';
+    snapshot.forEach(doc=>{
+      const u=doc.data();
+      list.innerHTML += `
         <div class="list-item">
           Rp ${u.jumlah.toLocaleString('id-ID')}
-          ${u.catatan ? `<div class="small">${u.catatan}</div>` : ''}
+          ${u.catatan? `<div class="small">${u.catatan}</div>`:''}
+          <button class="edit" onclick='editUang("${doc.id}", ${JSON.stringify(u)})'>Edit</button>
+          <button class="danger" onclick='hapusUang("${doc.id}")'>Hapus</button>
         </div>
       `;
     });
@@ -319,7 +417,6 @@ function renderUang(){
 renderKlien();
 renderJobs();
 renderUang();
-
 </script>
 </body>
 </html>
