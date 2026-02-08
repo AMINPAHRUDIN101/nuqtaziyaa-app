@@ -300,6 +300,13 @@ function render(){
 
 render();
 </script>
-
+<script>
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(() => {
+    console.log('Service Worker registered');
+  });
+}
+</script>
 </body>
 </html>
