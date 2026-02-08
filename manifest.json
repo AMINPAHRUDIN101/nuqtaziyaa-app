@@ -14,4 +14,33 @@
     }
   ]
 }
+// Tambah pemasukan online
+function tambahUang(){
+  const jumlah = +uJumlah.value;
+  const catatan = uCatatan.value;
 
+  if(!jumlah) return alert('Masukkan nominal');
+
+  db.collection('uang').add({
+    jumlah,
+    catatan,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(() => {
+    uJumlah.value = uCatatan.value = '';
+  });
+}
+
+// Render daftar pemasukan real-time
+db.collection('uang').orderBy('timestamp', 'desc')
+  .onSnapshot(snapshot => {
+    listUang.innerHTML = '';
+    snapshot.forEach(doc => {
+      const u = doc.data();
+      listUang.innerHTML += `
+        <div class="list-item">
+          Rp ${u.jumlah.toLocaleString('id-ID')}
+          ${u.catatan ? `<div class="small">${u.catatan}</div>` : ''}
+        </div>
+      `;
+    });
+  });
