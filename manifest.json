@@ -1,10 +1,11 @@
 {
   "name": "Nuqtazi Ziyaa Fotografi Manajemen",
   "short_name": "Nuqtazi Ziyaa",
-  "start_url": "index.html",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
+  "description": "Aplikasi manajemen fotografi untuk klien dan job",
   "icons": [
     {
       "src": "images/nuqtazi_ziyaa_bg.png",
@@ -13,3 +14,4 @@
     }
   ]
 }
+
