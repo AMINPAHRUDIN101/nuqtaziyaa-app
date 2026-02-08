@@ -1,0 +1,15 @@
+{
+  "name": "Nuqtazi Ziyaa Fotografi Manajemen",
+  "short_name": "Nuqtazi Ziyaa",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "images/nuqtazi_ziyaa_bg.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuqtazi Ziyaa Fotografi Manajemen</title>
+<link rel="manifest" href="manifest.json">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  color:#fff;
+  background:url('images/nuqtazi_ziyaa_bg.png') no-repeat center center fixed;
+  background-size:cover;
+}
+
+header{
+  background:rgba(0,0,0,.65);
+  padding:16px;
+  text-align:center;
+  backdrop-filter:blur(6px);
+}
+
+header img{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  margin-bottom:8px;
+}
+
+nav{
+  display:flex;
+  background:rgba(0,0,0,.75);
+}
+
+nav button{
+  flex:1;
+  padding:12px;
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:14px;
+}
+
+nav button.active{
+  background:rgba(255,255,255,.15);
+}
+
+section{
+  display:none;
+  padding:16px;
+}
+
+section.active{
+  display:block;
+}
+
+.card{
+  background:rgba(0,0,0,.6);
+  border-radius:10px;
+  padding:12px;
+  margin-bottom:12px;
+}
+
+input,select,textarea{
+  width:100%;
+  padding:8px;
+  margin:6px 0;
+  border-radius:6px;
+  border:none;
+}
+
+button.primary{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:6px;
+  background:#fff;
+  color:#000;
+  font-weight:bold;
+}
+
+.list-item{
+  border-bottom:1px solid rgba(255,255,255,.2);
+  padding:8px 0;
+}
+
+.small{
+  font-size:12px;
+  opacity:.8;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <img src="images/nuqtazi_ziyaa_bg.png">
+  <h2>Nuqtazi Ziyaa</h2>
+  <div class="small">Fotografi Manajemen</div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('dashboard',this)">Dashboard</button>
+  <button onclick="showTab('klien',this)">Klien</button>
+  <button onclick="showTab('job',this)">Job</button>
+  <button onclick="showTab('keuangan',this)">Keuangan</button>
+</nav>
+
+<section id="dashboard" class="active">
+  <div class="card"><b>Total Klien</b><div id="totalKlien">0</div></div>
+  <div class="card"><b>Total Job</b><div id="totalJob">0</div></div>
+  <div class="card"><b>Total Pemasukan</b><div id="totalUang">Rp 0</div></div>
+</section>
+
+<section id="klien">
+  <div class="card">
+    <h3>Tambah Klien</h3>
+    <input id="kNama" placeholder="Nama Klien">
+    <input id="kKontak" placeholder="Kontak (WA / IG)">
+    <select id="kTipe">
+      <option>Wedding</option>
+      <option>Event</option>
+      <option>Produk</option>
+      <option>Personal</option>
+    </select>
+    <button class="primary" onclick="tambahKlien()">Simpan</button>
+  </div>
+
+  <div class="card">
+    <h3>Daftar Klien</h3>
+    <div id="listKlien"></div>
+  </div>
+</section>
+
+<section id="job">
+  <div class="card">
+    <h3>Tambah Job</h3>
+    <input id="jNama" placeholder="Nama Project">
+    <input id="jTanggal" type="date">
+    <select id="jKlien"></select>
+    <input id="jHarga" type="number" placeholder="Harga">
+    <select id="jStatus">
+      <option>On Progress</option>
+      <option>Editing</option>
+      <option>Selesai</option>
+    </select>
+    <button class="primary" onclick="tambahJob()">Simpan</button>
+  </div>
+
+  <div class="card">
+<input type="date" id="filterTanggal" onchange="render()">
+    <h3>Daftar Job</h3>
+    <div id="listJob"></div>
+  </div>
+</section>
+
+<section id="keuangan">
+  <div class="card">
+    <h3>Tambah Pemasukan</h3>
+    <input id="uJumlah" type="number" placeholder="Jumlah">
+    <textarea id="uCatatan" placeholder="Catatan"></textarea>
+    <button class="primary" onclick="tambahUang()">Simpan</button>
+  </div>
+
+  <div class="card">
+    <h3>Riwayat</h3>
+    <div id="listUang"></div>
+  </div>
+</section>
+
+<script>
+let klien = JSON.parse(localStorage.getItem('klien') || '[]');
+let job   = JSON.parse(localStorage.getItem('job') || '[]');
+let uang  = JSON.parse(localStorage.getItem('uang') || '[]');
+
+/* ================= TAB ================= */
+function showTab(id,el){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ================= SAVE ================= */
+function save(){
+  localStorage.setItem('klien', JSON.stringify(klien));
+  localStorage.setItem('job', JSON.stringify(job));
+  localStorage.setItem('uang', JSON.stringify(uang));
+  render();
+}
+
+/* ================= KLIEN ================= */
+function tambahKlien(){
+  klien.push({
+    nama: kNama.value,
+    kontak: kKontak.value,
+    tipe: kTipe.value
+  });
+  kNama.value = kKontak.value = '';
+  save();
+}
+
+/* ================= JOB ================= */
+function tambahJob(){
+  job.push({
+    nama: jNama.value,
+    tanggal: jTanggal.value,
+    klien: jKlien.value,
+    harga: +jHarga.value,
+    status: jStatus.value
+  });
+  jNama.value = jHarga.value = '';
+  save();
+}
+
+function hapusJob(i){
+  if(confirm('Hapus job ini?')){
+    job.splice(i,1);
+    save();
+  }
+}
+
+/* ================= KEUANGAN ================= */
+function tambahUang(){
+  uang.push({
+    jumlah: +uJumlah.value,
+    catatan: uCatatan.value
+  });
+  uJumlah.value = uCatatan.value = '';
+  save();
+}
+
+/* ================= TOTAL ================= */
+function hitungTotal(){
+  let total = job.reduce((sum,j)=>sum + Number(j.harga),0);
+  totalUang.innerText = 'Rp ' + total.toLocaleString('id-ID');
+}
+
+/* ================= GRAFIK ================= */
+function drawGrafik(){
+  const c = document.getElementById('grafik');
+  if(!c) return;
+  const x = c.getContext('2d');
+  x.clearRect(0,0,c.width,c.height);
+
+  let max = Math.max(...job.map(j=>j.harga),1);
+  job.forEach((j,i)=>{
+    let h = (j.harga/max)*100;
+    x.fillRect(i*30,120-h,20,h);
+  });
+}
+
+/* ================= EXPORT ================= */
+function exportPDF(){
+  let teks = job.map(j =>
+    `${j.tanggal} | ${j.nama} | ${j.status} | Rp ${j.harga}`
+  ).join('\n');
+
+  const blob = new Blob([teks], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'laporan-job.txt';
+  a.click();
+}
+
+/* ================= RENDER ================= */
+function render(){
+  listKlien.innerHTML = klien.map(k=>`
+    <div class="list-item">
+      ${k.nama}
+      <div class="small">${k.tipe}</div>
+    </div>
+  `).join('');
+
+  jKlien.innerHTML = klien.map(k=>`<option>${k.nama}</option>`).join('');
+
+  const tgl = document.getElementById('filterTanggal')?.value;
+  const data = tgl ? job.filter(j=>j.tanggal===tgl) : job;
+
+  listJob.innerHTML = data.map((j,i)=>`
+    <div class="list-item">
+      ${j.nama}
+      <div class="small">${j.tanggal} • ${j.status}</div>
+      <button onclick="hapusJob(${i})">Hapus</button>
+    </div>
+  `).join('');
+
+  listUang.innerHTML = uang.map(u=>`
+    <div class="list-item">Rp ${u.jumlah}</div>
+  `).join('');
+
+  totalKlien.innerText = klien.length;
+  totalJob.innerText = job.length;
+
+  hitungTotal();
+  drawGrafik();
+}
+
+render();
+</script>
+
+</body>
+</html>
