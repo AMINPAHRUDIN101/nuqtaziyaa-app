@@ -287,9 +287,12 @@ function render(){
     </div>
   `).join('');
 
-  listUang.innerHTML = uang.map(u=>`
-    <div class="list-item">Rp ${u.jumlah}</div>
-  `).join('');
+  listUang.innerHTML = uang.map(u => `
+  <div class="list-item">
+    Rp ${u.jumlah.toLocaleString('id-ID')}
+    ${u.catatan ? `<div class="small">${u.catatan}</div>` : ''}
+  </div>
+`).join('');
 
   totalKlien.innerText = klien.length;
   totalJob.innerText = job.length;
