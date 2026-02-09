@@ -9,32 +9,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
 
-    - name: Install Bubblewrap
-      run: npm install -g @bubblewrap/cli
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+        with:
+          api-level: 33
+          build-tools: "33.0.2"
 
-    - name: Init Bubblewrap
-      run: |
-        bubblewrap init \
-          --manifest=manifest.json \
-          --packageId=com.nuqtaziyaa.app \
-          --name="Nuqtazi Ziyaa Fotografi" \
-          --skipPwaValidation \
-          --nonInteractive
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
 
-    - name: Build APK
-      run: bubblewrap build
+      - name: Init Bubblewrap
+        run: npx bubblewrap init --manifest=manifest.json --packageId=com.nuqtaziyaa.app --name="Nuqtaziyaa App" --skipPwaValidation --nonInteractive
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: nuqtaziyaa-apk
-        path: app-release.apk
+      - name: Build APK
+        run: npx bubblewrap build --non-interactive
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-files
+          path: |
+            app-release.apk
+            app-release-bundle.aab
